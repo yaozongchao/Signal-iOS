@@ -23,7 +23,7 @@ static NSString *CertificateServiceName;
 
     if (self) {
         self.pinnedCertificates = [NSSet setWithArray:@[
-            [self certificateDataForService:@"textsecure"],
+            [self certificateDataForService:[OWSHTTPSecurityPolicy certificateServiceName]],
         ]];
     }
 
