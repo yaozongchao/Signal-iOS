@@ -9,4 +9,7 @@
 
 + (instancetype)sharedPolicy;
 
++ (void)setCertificateServiceName:(NSString *)serviceName;
+
+
 @end

@@ -5,6 +5,8 @@
 #import "OWSHTTPSecurityPolicy.h"
 #import <AssertMacros.h>
 
+static NSString *CertificateServiceName;
+
 @implementation OWSHTTPSecurityPolicy
 
 + (instancetype)sharedPolicy {
@@ -29,7 +31,17 @@
 }
 
 - (NSArray *)certs {
-    return @[ (__bridge id)[self certificateForService:@"textsecure"] ];
+    return @[ (__bridge id)[self certificateForService:[OWSHTTPSecurityPolicy certificateServiceName]] ];
+}
+
++ (void)setCertificateServiceName:(NSString *)serviceName
+{
+    CertificateServiceName = serviceName;
+}
+
++ (NSString *)certificateServiceName
+{
+    return CertificateServiceName;
 }
 
 - (NSData *)certificateDataForService:(NSString *)service {
