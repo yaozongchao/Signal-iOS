@@ -59,6 +59,9 @@ extern NSString *const kNSNotificationName_LocalNumberDidChange;
 + (nullable NSString *)serverAuthToken;
 - (nullable NSString *)serverAuthToken;
 
+// modify by yaozongchao, 拿出来用作自己注册服务的验证，参考toshi
+- (void)storeServerAuthToken:(NSString *)authToken signalingKey:(NSString *)signalingKey;
+
 /**
  *  The registration ID is unique to an installation of TextSecure, it allows to know if the app was reinstalled
  *
