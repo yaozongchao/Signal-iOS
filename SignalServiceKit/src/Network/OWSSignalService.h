@@ -22,6 +22,10 @@ extern NSString *const kNSNotificationName_IsCensorshipCircumventionActiveDidCha
 
 - (instancetype)init NS_UNAVAILABLE;
 
+// add by yaozongchao, 用来设置聊天服务地址，参考toshi
++ (void)setBaseURLPath:(NSString *)baseURLPath;
++ (NSString *)baseURLPath;
+
 #pragma mark - Censorship Circumvention
 
 @property (atomic, readonly) BOOL isCensorshipCircumventionActive;

@@ -26,6 +26,9 @@ NSString *const kOWSPrimaryStorage_ManualCensorshipCircumventionCountryCode
 NSString *const kNSNotificationName_IsCensorshipCircumventionActiveDidChange =
     @"kNSNotificationName_IsCensorshipCircumventionActiveDidChange";
 
+static NSString *TextSecureServerURL = @"wss://token-chat-service.herokuapp.com";
+
+
 @interface OWSSignalService ()
 
 @property (nonatomic, nullable, readonly) OWSCensorshipConfiguration *censorshipConfiguration;
@@ -159,9 +162,17 @@ NSString *const kNSNotificationName_IsCensorshipCircumventionActiveDidChange =
     }
 }
 
++ (void)setBaseURLPath:(NSString *)baseURLPath {
+    TextSecureServerURL = baseURLPath;
+}
+
++ (NSString *)baseURLPath {
+    return TextSecureServerURL;
+}
+
 - (AFHTTPSessionManager *)defaultSignalServiceSessionManager
 {
-    NSURL *baseURL = [[NSURL alloc] initWithString:textSecureServerURL];
+    NSURL *baseURL = [[NSURL alloc] initWithString:OWSSignalService.baseURLPath];
     OWSAssert(baseURL);
     NSURLSessionConfiguration *sessionConf = NSURLSessionConfiguration.ephemeralSessionConfiguration;
     AFHTTPSessionManager *sessionManager =
