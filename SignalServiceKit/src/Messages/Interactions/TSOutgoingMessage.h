@@ -83,6 +83,8 @@ typedef NS_ENUM(NSInteger, TSGroupMetaMessage) {
 
 @property (atomic, readonly) BOOL hasSyncedTranscript;
 @property (atomic, readonly) NSString *customMessage;
+@property (atomic, readonly) NSDictionary *customInfo; // add by yaozongchao, 保存群组额外信息，参考toshi
+
 @property (atomic, readonly) NSString *mostRecentFailureText;
 // A map of attachment id-to-"source" filename.
 @property (nonatomic, readonly) NSMutableDictionary<NSString *, NSString *> *attachmentFilenameMap;
@@ -153,6 +155,11 @@ typedef NS_ENUM(NSInteger, TSGroupMetaMessage) {
                           transaction:(YapDatabaseReadWriteTransaction *)transaction;
 - (void)updateWithCustomMessage:(NSString *)customMessage transaction:(YapDatabaseReadWriteTransaction *)transaction;
 - (void)updateWithCustomMessage:(NSString *)customMessage;
+
+// add by yaozongchao
+- (void)updateWithCustomInfo:(NSDictionary *)customInfo transaction:(YapDatabaseReadWriteTransaction *)transaction;
+- (void)updateWithCustomInfo:(NSDictionary *)customInfo;
+
 // deliveryTimestamp is an optional parameter, since legacy
 // delivery receipts don't have a "delivery timestamp".  Those
 // messages repurpose the "timestamp" field to indicate when the

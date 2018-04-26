@@ -26,6 +26,8 @@ NSString *const kTSOutgoingMessageSentRecipientAll = @"kTSOutgoingMessageSentRec
 @property (atomic) TSOutgoingMessageState messageState;
 @property (atomic) BOOL hasSyncedTranscript;
 @property (atomic) NSString *customMessage;
+@property (atomic) NSDictionary *customInfo;
+
 @property (atomic) NSString *mostRecentFailureText;
 @property (atomic) BOOL wasDelivered;
 @property (atomic) NSString *singleGroupRecipient;
@@ -290,6 +292,21 @@ NSString *const kTSOutgoingMessageSentRecipientAll = @"kTSOutgoingMessageSentRec
 {
     [self.dbReadWriteConnection readWriteWithBlock:^(YapDatabaseReadWriteTransaction *transaction) {
         [self updateWithCustomMessage:customMessage transaction:transaction];
+    }];
+}
+
+- (void)updateWithCustomInfo:(NSDictionary *)customInfo transaction:(YapDatabaseReadWriteTransaction *)transaction {
+    OWSAssert(customInfo);
+    OWSAssert(transaction);
+    [self applyChangeToSelfAndLatestCopy:transaction
+                             changeBlock:^(TSOutgoingMessage *message) {
+                                 [message setCustomInfo:customInfo];
+                             }];
+}
+
+- (void)updateWithCustomInfo:(NSDictionary *)customInfo {
+    [self.dbReadWriteConnection readWriteWithBlock:^(YapDatabaseReadWriteTransaction *transaction) {
+        [self updateWithCustomInfo:customInfo transaction:transaction];
     }];
 }
 

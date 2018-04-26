@@ -949,13 +949,21 @@ NS_ASSUME_NONNULL_BEGIN
                                                                           groupId:dataMessage.group.id];
                 NSString *updateGroupInfo = [newGroupThread.groupModel getInfoStringAboutUpdateTo:newGroupModel
                                                                                   contactsManager:self.contactsManager];
+                
+                NSDictionary *updateGroupInfoDic = [newGroupThread.groupModel getInfoAboutUpdateTo:newGroupModel];
+                NSString *updatedTypeString = updateGroupInfoDic[GroupUpdateTypeSting];
+                NSString *updateInfoString = updateGroupInfoDic[GroupInfoString];
+
                 newGroupThread.groupModel = newGroupModel;
                 [newGroupThread saveWithTransaction:transaction];
-
-                [[[TSInfoMessage alloc] initWithTimestamp:timestamp
-                                                 inThread:newGroupThread
-                                              messageType:TSInfoMessageTypeGroupUpdate
-                                            customMessage:updateGroupInfo] saveWithTransaction:transaction];
+                
+                TSInfoMessage* newMsg = [[TSInfoMessage alloc] initWithTimestamp:timestamp
+                                                                        inThread:newGroupThread
+                                                                     messageType:TSInfoMessageTypeGroupUpdate
+                                                                   customMessage:updateGroupInfo];
+                newMsg.additionalInfoString = updateInfoString;
+                newMsg.authorId = envelope.source;
+                [newMsg saveWithTransaction:transaction];
                 return nil;
             }
             case OWSSignalServiceProtosGroupContextTypeQuit: {
@@ -970,10 +978,14 @@ NS_ASSUME_NONNULL_BEGIN
                 NSString *nameString = [self.contactsManager displayNameForPhoneIdentifier:envelope.source];
                 NSString *updateGroupInfo =
                     [NSString stringWithFormat:NSLocalizedString(@"GROUP_MEMBER_LEFT", @""), nameString];
-                [[[TSInfoMessage alloc] initWithTimestamp:timestamp
-                                                 inThread:oldGroupThread
-                                              messageType:TSInfoMessageTypeGroupUpdate
-                                            customMessage:updateGroupInfo] saveWithTransaction:transaction];
+                
+                TSInfoMessage* newMsg = [[TSInfoMessage alloc] initWithTimestamp:timestamp
+                                                                        inThread:oldGroupThread
+                                                                     messageType:TSInfoMessageTypeGroupUpdate
+                                                                   customMessage:updateGroupInfo];
+                newMsg.additionalInfoString = nameString;
+                newMsg.authorId = envelope.source;
+                [newMsg saveWithTransaction:transaction];
                 return nil;
             }
             case OWSSignalServiceProtosGroupContextTypeDeliver: {

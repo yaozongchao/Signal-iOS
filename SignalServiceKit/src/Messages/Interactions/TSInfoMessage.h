@@ -27,6 +27,10 @@ typedef NS_ENUM(NSInteger, TSInfoMessageType) {
 
 @property (atomic, readonly) TSInfoMessageType messageType;
 @property (atomic, readonly) NSString *customMessage;
+// add by yaozongcha 添加群组额外信息，参考toshi
+@property (atomic, copy) NSString *additionalInfoString;
+@property (atomic, copy) NSString *authorId;
+
 
 - (instancetype)initMessageWithTimestamp:(uint64_t)timestamp
                                 inThread:(nullable TSThread *)thread
