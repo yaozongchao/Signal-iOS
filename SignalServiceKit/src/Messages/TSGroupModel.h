@@ -7,11 +7,23 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+extern NSString *const GroupUpdateTypeSting;
+extern NSString *const GroupInfoString;
+
+extern NSString *const GroupCreateMessage;
+extern NSString *const GroupBecameMemberMessage;
+extern NSString *const GroupUpdatedMessage;
+extern NSString *const GroupTitleChangedMessage;
+extern NSString *const GroupAvatarChangedMessage;
+extern NSString *const GroupMemberLeftMessage;
+extern NSString *const GroupMemberJoinedMessage;
+
+
 @interface TSGroupModel : TSYapDatabaseObject
 
-@property (nonatomic) NSArray<NSString *> *groupMemberIds;
-@property (nullable, readonly, nonatomic) NSString *groupName;
-@property (readonly, nonatomic) NSData *groupId;
+@property (nonatomic, strong, nullable) NSArray<NSString *> *groupMemberIds;
+@property (nonatomic, copy, nullable) NSString *groupName;
+@property (nonatomic, strong, nullable) NSData *groupId;
 
 #if TARGET_OS_IOS
 @property (nullable, nonatomic, strong) UIImage *groupImage;
@@ -24,6 +36,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)isEqual:(id)other;
 - (BOOL)isEqualToGroupModel:(TSGroupModel *)model;
 - (NSString *)getInfoStringAboutUpdateTo:(TSGroupModel *)model contactsManager:(id<ContactsManagerProtocol>)contactsManager;
+- (nullable NSDictionary *)getInfoAboutUpdateTo:(TSGroupModel *)newModel;
+
 #endif
 
 @end
