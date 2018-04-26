@@ -171,13 +171,13 @@ void runAsyncRegistrationsForStorage(OWSStorage *storage, dispatch_block_t compl
 + (NSString *)sharedDataDatabaseDirPath
 {
     return [[self class] legacyDatabaseDirPath];
-    NSString *databaseDirPath = [[OWSFileSystem appSharedDataDirectoryPath] stringByAppendingPathComponent:@"database"];
-
-    if (![OWSFileSystem ensureDirectoryExists:databaseDirPath]) {
-        OWSRaiseException(
-            OWSPrimaryStorageExceptionName_CouldNotCreateDatabaseDirectory, @"Could not create new database directory");
-    }
-    return databaseDirPath;
+//    NSString *databaseDirPath = [[OWSFileSystem appSharedDataDirectoryPath] stringByAppendingPathComponent:@"database"];
+//
+//    if (![OWSFileSystem ensureDirectoryExists:databaseDirPath]) {
+//        OWSRaiseException(
+//            OWSPrimaryStorageExceptionName_CouldNotCreateDatabaseDirectory, @"Could not create new database directory");
+//    }
+//    return databaseDirPath;
 }
 
 + (NSString *)databaseFilename

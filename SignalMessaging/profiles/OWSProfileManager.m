@@ -1105,7 +1105,8 @@ const NSUInteger kOWSProfileManager_MaxAvatarDiameter = 640;
 
 + (NSString *)sharedDataProfileAvatarsDirPath
 {
-    return [[OWSFileSystem appSharedDataDirectoryPath] stringByAppendingPathComponent:@"ProfileAvatars"];
+    return [[self class] legacyProfileAvatarsDirPath];
+//    return [[OWSFileSystem appSharedDataDirectoryPath] stringByAppendingPathComponent:@"ProfileAvatars"];
 }
 
 + (nullable NSError *)migrateToSharedData

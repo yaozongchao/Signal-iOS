@@ -203,7 +203,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (NSString *)sharedDataAttachmentsDirPath
 {
-    return [[OWSFileSystem appSharedDataDirectoryPath] stringByAppendingPathComponent:@"Attachments"];
+    return [[self class] legacyAttachmentsDirPath];
+//    return [[OWSFileSystem appSharedDataDirectoryPath] stringByAppendingPathComponent:@"Attachments"];
 }
 
 + (nullable NSError *)migrateToSharedData
