@@ -19,7 +19,7 @@ typedef NS_ENUM(NSInteger, TSOutgoingMessageState) {
     TSOutgoingMessageStateDelivered_OBSOLETE,
     // The message has been sent to the service.
     TSOutgoingMessageStateSentToService,
-} NS_SWIFT_NAME(OutgoingMessageState);
+};
 
 typedef NS_ENUM(NSInteger, TSGroupMetaMessage) {
     TSGroupMessageUnspecified,
@@ -28,7 +28,7 @@ typedef NS_ENUM(NSInteger, TSGroupMetaMessage) {
     TSGroupMessageDeliver,
     TSGroupMessageQuit,
     TSGroupMessageRequestInfo,
-} NS_SWIFT_NAME(GroupMetaMessage);
+};
 
 @class OWSSignalServiceProtosAttachmentPointer;
 @class OWSSignalServiceProtosContentBuilder;
