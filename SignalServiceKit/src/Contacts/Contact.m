@@ -29,7 +29,30 @@ NS_ASSUME_NONNULL_BEGIN
 @synthesize image = _image;
 
 #if TARGET_OS_IOS
-
+- (instancetype)initWithContactWithFirstName:(nullable NSString *)firstName
+                                 andLastName:(nullable NSString *)lastName
+                     andUserTextPhoneNumbers:(NSArray *)phoneNumbers
+                                    andImage:(nullable UIImage *)image
+                                andContactID:(int32_t)record
+{
+    self = [super init];
+    if (!self) {
+        return self;
+    }
+    
+    _firstName = [self trimName:firstName];
+    _lastName = [self trimName:lastName];
+    _uniqueId = [self.class uniqueIdFromABRecordId:record];
+    _recordID = record;
+    _userTextPhoneNumbers = phoneNumbers;
+    _phoneNumberNameMap = [NSMutableDictionary new];
+    _parsedPhoneNumbers = [self parsedPhoneNumbersFromUserTextPhoneNumbers:phoneNumbers phoneNumberNameMap:@{}];
+    _image = image;
+    // Not using emails for old AB style contacts.
+    _emails = [NSMutableArray new];
+    
+    return self;
+}
 - (instancetype)initWithSystemContact:(CNContact *)contact
 {
     self = [super init];

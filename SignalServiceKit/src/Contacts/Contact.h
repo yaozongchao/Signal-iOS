@@ -33,6 +33,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, readonly) BOOL isSignalContact;
 #if TARGET_OS_IOS
 @property (nullable, readonly, nonatomic) UIImage *image;
+@property (readonly, nonatomic) int32_t recordID;
 @property (nullable, nonatomic, readonly) CNContact *cnContact;
 #endif // TARGET_OS_IOS
 
@@ -41,6 +42,12 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSArray<NSString *> *)textSecureIdentifiers;
 
 #if TARGET_OS_IOS
+
+- (instancetype)initWithContactWithFirstName:(nullable NSString *)firstName
+                                 andLastName:(nullable NSString *)lastName
+                     andUserTextPhoneNumbers:(NSArray<NSString *> *)phoneNumbers
+                                    andImage:(nullable UIImage *)image
+                                andContactID:(int32_t)record;
 
 - (instancetype)initWithSystemContact:(CNContact *)contact NS_AVAILABLE_IOS(9_0);
 
