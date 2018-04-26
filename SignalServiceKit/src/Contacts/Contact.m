@@ -153,6 +153,11 @@ NS_ASSUME_NONNULL_BEGIN
     return [name stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 }
 
++ (NSString *)uniqueIdFromABRecordId:(int32_t)recordId
+{
+    return [NSString stringWithFormat:@"ABRecordId:%d", recordId];
+}
+
 + (MTLPropertyStorage)storageBehaviorForPropertyWithKey:(NSString *)propertyKey
 {
     if ([propertyKey isEqualToString:@"cnContact"] || [propertyKey isEqualToString:@"image"]) {
