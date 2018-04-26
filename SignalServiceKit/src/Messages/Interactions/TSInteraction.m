@@ -133,6 +133,28 @@ NS_ASSUME_NONNULL_BEGIN
         stringWithFormat:@"%@ in thread: %@ timestamp: %tu", [super description], self.uniqueThreadId, self.timestamp];
 }
 
+- (NSString *)paymentStateText
+{
+    NSString *path = [[NSBundle bundleForClass:[TSInteraction class]] pathForResource:@"SignalServiceKit" ofType:@"bundle"];
+    NSBundle *bundle = [NSBundle bundleWithPath:path];
+    if (!bundle) {
+        bundle = [NSBundle mainBundle];
+    }
+    
+    switch (self.paymentState) {
+        case TSPaymentStateFailed:
+            return [bundle localizedStringForKey:@"payment-state-failed" value:@"Failed" table:@"Localizable"];
+        case TSPaymentStatePendingConfirmation:
+            return [bundle localizedStringForKey:@"payment-state-requested" value:@"Requested" table:@"Localizable"];
+        case TSPaymentStateRejected:
+            return [bundle localizedStringForKey:@"payment-state-rejected" value:@"Rejected" table:@"Localizable"];
+        case TSPaymentStateApproved:
+            return [bundle localizedStringForKey:@"payment-state-approved" value:@"Approved" table:@"Localizable"];
+        default:
+            return @"";
+    }
+}
+
 - (void)saveWithTransaction:(YapDatabaseReadWriteTransaction *)transaction {
     if (!self.uniqueId) {
         self.uniqueId = [OWSPrimaryStorage getAndIncrementMessageIdWithTransaction:transaction];

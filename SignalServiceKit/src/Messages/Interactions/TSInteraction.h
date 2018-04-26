@@ -6,6 +6,14 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+typedef NS_ENUM(NSUInteger, TSPaymentState) {
+    TSPaymentStateNone,
+    TSPaymentStatePendingConfirmation,
+    TSPaymentStateFailed,
+    TSPaymentStateRejected,
+    TSPaymentStateApproved
+} NS_SWIFT_NAME(PaymentState);
+
 @class TSThread;
 
 typedef NS_ENUM(NSInteger, OWSInteractionType) {
@@ -32,6 +40,10 @@ typedef NS_ENUM(NSInteger, OWSInteractionType) {
 @property (nonatomic, readonly) NSString *uniqueThreadId;
 @property (nonatomic, readonly) TSThread *thread;
 @property (nonatomic, readonly) uint64_t timestamp;
+
+@property (nonatomic, assign) TSPaymentState paymentState;
+
+- (NSString *)paymentStateText;
 
 - (OWSInteractionType)interactionType;
 
