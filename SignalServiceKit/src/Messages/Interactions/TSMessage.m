@@ -335,6 +335,12 @@ static const NSUInteger OWSMessageSchemaVersion = 4;
                              }];
 }
 
+- (void)updateWithBody:(NSString *)body {
+    [self.dbReadWriteConnection readWriteWithBlock:^(YapDatabaseReadWriteTransaction *transaction) {
+        [self updateWithBody:body transaction:transaction];
+    }];
+}
+
 - (void)updateWithBody:(NSString *)body transaction:(YapDatabaseReadWriteTransaction *)transaction {
     [self applyChangeToSelfAndLatestCopy:transaction
                              changeBlock:^(TSMessage *message) {

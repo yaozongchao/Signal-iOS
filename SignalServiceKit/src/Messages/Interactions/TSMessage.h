@@ -48,6 +48,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)updateWithExpireStartedAt:(uint64_t)expireStartedAt transaction:(YapDatabaseReadWriteTransaction *)transaction;
 
+- (void)updateWithBody:(NSString *)body;
 - (void)updateWithBody:(NSString *)body transaction:(YapDatabaseReadWriteTransaction *)transaction;
 
 
