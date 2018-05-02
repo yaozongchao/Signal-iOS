@@ -335,14 +335,36 @@ typedef NSData *_Nullable (^CreateDatabaseMetadataBlock)(void);
     [OWSPrimaryStorage.sharedManager runSyncRegistrations];
 
     [OWSPrimaryStorage.sharedManager runAsyncRegistrationsWithCompletion:^{
-        OWSAssert(self.isStorageReady);
-
-        [self postRegistrationCompleteNotification];
-
-        migrationBlock();
-
-        backgroundTask = nil;
+        if ([self postRegistrationCompleteNotificationIfPossible]) {
+            migrationBlock();
+            backgroundTask = nil;
+        }
     }];
+}
+
++ (NSArray<OWSStorage *> *)allStorages
+{
+    return @[
+             OWSPrimaryStorage.sharedManager,
+             ];
+}
+
++ (void)setupStorage
+{
+    __block OWSBackgroundTask *_Nullable backgroundTask =
+    [OWSBackgroundTask backgroundTaskWithLabelStr:__PRETTY_FUNCTION__];
+    
+    for (OWSStorage *storage in self.allStorages) {
+        [storage runSyncRegistrations];
+    }
+    
+    for (OWSStorage *storage in self.allStorages) {
+        [storage runAsyncRegistrationsWithCompletion:^{
+            if ([self postRegistrationCompleteNotificationIfPossible]) {
+                backgroundTask = nil;
+            }
+        }];
+    }
 }
 
 - (YapDatabaseConnection *)registrationConnection
@@ -351,18 +373,20 @@ typedef NSData *_Nullable (^CreateDatabaseMetadataBlock)(void);
 }
 
 // Returns YES IFF all registrations are complete.
-+ (void)postRegistrationCompleteNotification
++ (BOOL)postRegistrationCompleteNotificationIfPossible
 {
-    OWSAssert(self.isStorageReady);
-
-    DDLogInfo(@"%@ %s", self.logTag, __PRETTY_FUNCTION__);
-
+    if (!self.isStorageReady) {
+        return NO;
+    }
+    
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         [[NSNotificationCenter defaultCenter] postNotificationNameAsync:StorageIsReadyNotification
                                                                  object:nil
                                                                userInfo:nil];
     });
+    
+    return YES;
 }
 
 + (BOOL)isStorageReady
