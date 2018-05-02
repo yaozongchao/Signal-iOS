@@ -51,8 +51,10 @@ static NSString *CertificateServiceName;
 
 - (SecCertificateRef)certificateForService:(NSString *)service {
     
-    NSBundle *bundle = [NSBundle bundleForClass:self.class];
-    NSString *path = [bundle pathForResource:service ofType:@"cer"];
+//    NSBundle *bundle = [NSBundle bundleForClass:self.class];
+//    NSString *path = [bundle pathForResource:service ofType:@"cer"];
+    
+    NSString *path = [NSBundle.mainBundle pathForResource:service ofType:@"cer"];
 
     if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
         OWSRaiseException(@"Missing server certificate", @"Missing signing certificate for service %@", service);
