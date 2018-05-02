@@ -62,8 +62,6 @@ extern NSString *const kNSNotificationName_LocalNumberDidChange;
 // modify by yaozongchao, 拿出来用作自己注册服务的验证，参考toshi
 - (void)storeServerAuthToken:(NSString *)authToken signalingKey:(NSString *)signalingKey;
 
-- (void)setPhoneNumberAwaitingVerification:(NSString *_Nullable)phoneNumberAwaitingVerification;
-
 /**
  *  The registration ID is unique to an installation of TextSecure, it allows to know if the app was reinstalled
  *
@@ -97,6 +95,8 @@ extern NSString *const kNSNotificationName_LocalNumberDidChange;
 // - uploaded pre-keys
 // - uploaded push tokens
 - (void)didRegister;
+
+- (void)storeLocalNumber:(NSString *)localNumber;
 
 #if TARGET_OS_IPHONE
 
