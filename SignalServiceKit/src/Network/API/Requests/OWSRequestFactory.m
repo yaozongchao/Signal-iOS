@@ -157,16 +157,23 @@ NS_ASSUME_NONNULL_BEGIN
 + (TSRequest *)registerForPushRequestWithPushIdentifier:(NSString *)identifier voipIdentifier:(NSString *)voipId
 {
     OWSAssert(identifier.length > 0);
-    OWSAssert(voipId.length > 0);
+//    OWSAssert(voipId.length > 0);
 
     NSString *path = [NSString stringWithFormat:@"%@/%@", textSecureAccountsAPI, @"apn"];
-    OWSAssert(voipId);
+//    OWSAssert(voipId);
+    if (voipId && voipId.length > 0) {
+        return [TSRequest requestWithUrl:[NSURL URLWithString:path]
+                                  method:@"PUT"
+                              parameters:@{
+                                           @"apnRegistrationId" : identifier,
+                                           @"voipRegistrationId" : voipId,
+                                           }];
+    }
     return [TSRequest requestWithUrl:[NSURL URLWithString:path]
                               method:@"PUT"
                           parameters:@{
-                              @"apnRegistrationId" : identifier,
-                              @"voipRegistrationId" : voipId ?: @"",
-                          }];
+                                       @"apnRegistrationId" : identifier
+                                       }];
 }
 
 + (TSRequest *)updateAttributesRequestWithManualMessageFetching:(BOOL)enableManualMessageFetching
