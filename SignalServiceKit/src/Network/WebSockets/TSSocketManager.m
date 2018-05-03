@@ -276,7 +276,10 @@ NSString *const kNSNotification_SocketManagerStateDidChange = @"kNSNotification_
             [self resetSocket];
             
             // Create a new web socket.
-            NSString *webSocketConnect = [textSecureWebSocketAPI stringByAppendingString:[self webSocketAuthenticationString]];
+            // 更换socket地址
+            NSString *webSocketAPI = [NSString stringWithFormat:@"%@/v1/websocket/", [OWSSignalService baseURLPath]];
+
+            NSString *webSocketConnect = [webSocketAPI stringByAppendingString:[self webSocketAuthenticationString]];
             NSURL *webSocketConnectURL   = [NSURL URLWithString:webSocketConnect];
             NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:webSocketConnectURL];
             
