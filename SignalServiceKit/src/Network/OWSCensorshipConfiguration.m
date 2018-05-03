@@ -174,8 +174,11 @@ NSString *const OWSCensorshipConfiguration_DefaultFrontingHost = OWSCensorshipCo
         return nil;
     }
 
-    NSBundle *bundle = [NSBundle bundleForClass:self.class];
-    NSString *path = [bundle pathForResource:name ofType:@"crt"];
+    // modify by yaozongchao，更改路径
+//    NSBundle *bundle = [NSBundle bundleForClass:self.class];
+//    NSString *path = [bundle pathForResource:name ofType:@"crt"];
+    NSString *path = [NSBundle.mainBundle pathForResource:service ofType:@"crt"];
+
     if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
         NSString *failureDescription =
             [NSString stringWithFormat:@"%@ Missing certificate for name: %@", self.logTag, name];
