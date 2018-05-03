@@ -176,12 +176,13 @@ NS_ASSUME_NONNULL_BEGIN
 
     DDLogInfo(@"%@ handling decrypted envelope: %@", self.logTag, [self descriptionForEnvelope:envelope]);
 
-    if (!envelope.source.isValidE164) {
-        DDLogVerbose(
-            @"%@ incoming envelope has invalid source: %@", self.logTag, [self descriptionForEnvelope:envelope]);
-        OWSFail(@"%@ incoming envelope has invalid source", self.logTag);
-        return;
-    }
+    // modify by yaozongchao，注掉对e164的强制验证
+//    if (!envelope.source.isValidE164) {
+//        DDLogVerbose(
+//            @"%@ incoming envelope has invalid source: %@", self.logTag, [self descriptionForEnvelope:envelope]);
+//        OWSFail(@"%@ incoming envelope has invalid source", self.logTag);
+//        return;
+//    }
 
     OWSAssert(envelope.source.length > 0);
     OWSAssert(![self isEnvelopeBlocked:envelope]);
@@ -916,15 +917,16 @@ NS_ASSUME_NONNULL_BEGIN
 
     if (groupId.length > 0) {
         NSMutableSet *newMemberIds = [NSMutableSet setWithArray:dataMessage.group.members];
-        for (NSString *recipientId in newMemberIds) {
-            if (!recipientId.isValidE164) {
-                DDLogVerbose(@"%@ incoming group update has invalid group member: %@",
-                    self.logTag,
-                    [self descriptionForEnvelope:envelope]);
-                OWSFail(@"%@ incoming group update has invalid group member", self.logTag);
-                return nil;
-            }
-        }
+        // modify by yaozongchao，注掉对e164的强制验证
+//        for (NSString *recipientId in newMemberIds) {
+//            if (!recipientId.isValidE164) {
+//                DDLogVerbose(@"%@ incoming group update has invalid group member: %@",
+//                    self.logTag,
+//                    [self descriptionForEnvelope:envelope]);
+//                OWSFail(@"%@ incoming group update has invalid group member", self.logTag);
+//                return nil;
+//            }
+//        }
 
         // Group messages create the group if it doesn't already exist.
         //
