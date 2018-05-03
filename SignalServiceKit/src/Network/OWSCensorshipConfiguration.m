@@ -177,7 +177,7 @@ NSString *const OWSCensorshipConfiguration_DefaultFrontingHost = OWSCensorshipCo
     // modify by yaozongchao，更改路径
 //    NSBundle *bundle = [NSBundle bundleForClass:self.class];
 //    NSString *path = [bundle pathForResource:name ofType:@"crt"];
-    NSString *path = [NSBundle.mainBundle pathForResource:service ofType:@"crt"];
+    NSString *path = [NSBundle.mainBundle pathForResource:name ofType:@"crt"];
 
     if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
         NSString *failureDescription =
