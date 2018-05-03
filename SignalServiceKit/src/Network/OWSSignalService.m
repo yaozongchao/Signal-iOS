@@ -185,16 +185,38 @@ static NSString *TextSecureServerURL = @"wss://token-chat-service.herokuapp.com"
     return sessionManager;
 }
 
+- (NSURL *)domainFrontingBaseURL
+{
+    NSString *localNumber = [TSAccountManager localNumber];
+    OWSAssert(localNumber.length > 0);
+    
+    // Target fronting domain
+    OWSAssert(self.isCensorshipCircumventionActive);
+    NSString *frontingHost = [self.censorshipConfiguration frontingHost:localNumber];
+    if (self.isCensorshipCircumventionManuallyActivated && self.manualCensorshipCircumventionDomain.length > 0) {
+        frontingHost = self.manualCensorshipCircumventionDomain;
+    };
+    NSURL *baseURL = [[NSURL alloc] initWithString:[self.censorshipConfiguration frontingHost:localNumber]];
+    OWSAssert(baseURL);
+    
+    return baseURL;
+}
+
 - (AFHTTPSessionManager *)reflectorSignalServiceSessionManager
 {
     OWSCensorshipConfiguration *censorshipConfiguration = self.censorshipConfiguration;
 
     NSURLSessionConfiguration *sessionConf = NSURLSessionConfiguration.ephemeralSessionConfiguration;
+    // modify by yaozongchao, 参考toshi
+//    AFHTTPSessionManager *sessionManager =
+//        [[AFHTTPSessionManager alloc] initWithBaseURL:censorshipConfiguration.domainFrontBaseURL
+//                                 sessionConfiguration:sessionConf];
     AFHTTPSessionManager *sessionManager =
-        [[AFHTTPSessionManager alloc] initWithBaseURL:censorshipConfiguration.domainFrontBaseURL
-                                 sessionConfiguration:sessionConf];
+    [[AFHTTPSessionManager alloc] initWithBaseURL:self.domainFrontingBaseURL
+                             sessionConfiguration:sessionConf];
 
-    sessionManager.securityPolicy = censorshipConfiguration.domainFrontSecurityPolicy;
+//    sessionManager.securityPolicy = censorshipConfiguration.domainFrontSecurityPolicy;
+    sessionManager.securityPolicy = [[self class] googlePinningPolicy];
 
     sessionManager.requestSerializer = [AFJSONRequestSerializer serializer];
     [sessionManager.requestSerializer setValue:self.censorshipConfiguration.signalServiceReflectorHost forHTTPHeaderField:@"Host"];
@@ -240,11 +262,16 @@ static NSString *TextSecureServerURL = @"wss://token-chat-service.herokuapp.com"
 
     OWSCensorshipConfiguration *censorshipConfiguration = self.censorshipConfiguration;
 
+//    AFHTTPSessionManager *sessionManager =
+//        [[AFHTTPSessionManager alloc] initWithBaseURL:censorshipConfiguration.domainFrontBaseURL
+//                                 sessionConfiguration:sessionConf];
     AFHTTPSessionManager *sessionManager =
-        [[AFHTTPSessionManager alloc] initWithBaseURL:censorshipConfiguration.domainFrontBaseURL
-                                 sessionConfiguration:sessionConf];
+    [[AFHTTPSessionManager alloc] initWithBaseURL:self.domainFrontingBaseURL
+                             sessionConfiguration:sessionConf];
 
-    sessionManager.securityPolicy = censorshipConfiguration.domainFrontSecurityPolicy;
+//    sessionManager.securityPolicy = censorshipConfiguration.domainFrontSecurityPolicy;
+    sessionManager.securityPolicy = [[self class] googlePinningPolicy];
+
 
     sessionManager.requestSerializer = [AFJSONRequestSerializer serializer];
     [sessionManager.requestSerializer setValue:censorshipConfiguration.CDNReflectorHost forHTTPHeaderField:@"Host"];
@@ -252,6 +279,42 @@ static NSString *TextSecureServerURL = @"wss://token-chat-service.herokuapp.com"
     sessionManager.responseSerializer = [AFJSONResponseSerializer serializer];
 
     return sessionManager;
+}
+
+#pragma mark - Google Pinning Policy
+
+/**
+ * We use the Google Pinning Policy when connecting to our censorship circumventing reflector,
+ * which is hosted on Google.
+ */
++ (AFSecurityPolicy *)googlePinningPolicy {
+    static AFSecurityPolicy *securityPolicy = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        NSError *error;
+        NSString *path = [NSBundle.mainBundle pathForResource:@"GIAG2" ofType:@"crt"];
+        
+        if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
+            @throw [NSException
+                    exceptionWithName:@"Missing server certificate"
+                    reason:[NSString stringWithFormat:@"Missing signing certificate for service googlePinningPolicy"]
+                    userInfo:nil];
+        }
+        
+        NSData *googleCertData = [NSData dataWithContentsOfFile:path options:0 error:&error];
+        if (!googleCertData) {
+            if (error) {
+                @throw [NSException exceptionWithName:@"OWSSignalServiceHTTPSecurityPolicy" reason:@"Couln't read google pinning cert" userInfo:nil];
+            } else {
+                NSString *reason = [NSString stringWithFormat:@"Reading google pinning cert faile with error: %@", error];
+                @throw [NSException exceptionWithName:@"OWSSignalServiceHTTPSecurityPolicy" reason:reason userInfo:nil];
+            }
+        }
+        
+        NSSet<NSData *> *certificates = [NSSet setWithObject:googleCertData];
+        securityPolicy = [AFSecurityPolicy policyWithPinningMode:AFSSLPinningModeCertificate withPinnedCertificates:certificates];
+    });
+    return securityPolicy;
 }
 
 #pragma mark - Events
