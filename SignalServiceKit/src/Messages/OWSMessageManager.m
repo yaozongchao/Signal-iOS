@@ -62,6 +62,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, readonly) TSNetworkManager *networkManager;
 @property (nonatomic, readonly) YapDatabaseConnection *dbConnection;
 
+// add by yaozongchao，解决删除群组消息后，收到第一条消息不展示的问题，采用暂存上一条消息的办法
+@property (nonatomic, strong)OWSSignalServiceProtosEnvelope *cachedEnvelope;
+@property (nonatomic, strong)OWSSignalServiceProtosDataMessage *cachedDataMessage;
+
 @end
 
 #pragma mark -
@@ -365,8 +369,47 @@ NS_ASSUME_NONNULL_BEGIN
             // Unknown group.
             if (dataMessage.group.type == OWSSignalServiceProtosGroupContextTypeUpdate) {
                 // Accept group updates for unknown groups.
+                if ((dataMessage.flags & OWSSignalServiceProtosDataMessageFlagsEndSession) != 0) {
+                    [self handleEndSessionMessageWithEnvelope:envelope dataMessage:dataMessage transaction:transaction];
+                } else if ((dataMessage.flags & OWSSignalServiceProtosDataMessageFlagsExpirationTimerUpdate) != 0) {
+                    [self handleExpirationTimerUpdateMessageWithEnvelope:envelope dataMessage:dataMessage transaction:transaction];
+                } else if ((dataMessage.flags & OWSSignalServiceProtosDataMessageFlagsProfileKeyUpdate) != 0) {
+                    [self handleProfileKeyMessageWithEnvelope:envelope dataMessage:dataMessage];
+                } else if (dataMessage.attachments.count > 0) {
+                    [self handleReceivedMediaWithEnvelope:envelope dataMessage:dataMessage transaction:transaction];
+                } else {
+                    [self handleReceivedTextMessageWithEnvelope:envelope dataMessage:dataMessage transaction:transaction];
+                    
+                    if ([self isDataMessageGroupAvatarUpdate:dataMessage]) {
+                        DDLogVerbose(@"%@ Data message had group avatar attachment", self.logTag);
+                        [self handleReceivedGroupAvatarUpdateWithEnvelope:envelope dataMessage:dataMessage transaction:transaction];
+                    }
+                }
+                if (self.cachedDataMessage/* && self.cachedDataMessage.group.id == dataMessage.group.id*/) {
+                    if ((self.cachedDataMessage.flags & OWSSignalServiceProtosDataMessageFlagsEndSession) != 0) {
+                        [self handleEndSessionMessageWithEnvelope:self.cachedEnvelope dataMessage:self.cachedDataMessage transaction:transaction];
+                    } else if ((self.cachedDataMessage.flags & OWSSignalServiceProtosDataMessageFlagsExpirationTimerUpdate) != 0) {
+                        [self handleExpirationTimerUpdateMessageWithEnvelope:self.cachedEnvelope dataMessage:self.cachedDataMessage transaction:transaction];
+                    } else if ((self.cachedDataMessage.flags & OWSSignalServiceProtosDataMessageFlagsProfileKeyUpdate) != 0) {
+                        [self handleProfileKeyMessageWithEnvelope:self.cachedEnvelope dataMessage:self.cachedDataMessage];
+                    } else if (self.cachedDataMessage.attachments.count > 0) {
+                        [self handleReceivedMediaWithEnvelope:self.cachedEnvelope dataMessage:self.cachedDataMessage transaction:transaction];
+                    } else {
+                        [self handleReceivedTextMessageWithEnvelope:self.cachedEnvelope dataMessage:self.cachedDataMessage transaction:transaction];
+                        
+                        if ([self isDataMessageGroupAvatarUpdate:self.cachedDataMessage]) {
+                            DDLogVerbose(@"%@ Data message had group avatar attachment", self.logTag);
+                            [self handleReceivedGroupAvatarUpdateWithEnvelope:self.cachedEnvelope dataMessage:self.cachedDataMessage transaction:transaction];
+                        }
+                    }
+                    self.cachedEnvelope = nil;
+                    self.cachedDataMessage = nil;
+                }
+                return;
             } else if (dataMessage.group.type == OWSSignalServiceProtosGroupContextTypeDeliver) {
                 [self sendGroupInfoRequest:dataMessage.group.id envelope:envelope transaction:transaction];
+                self.cachedEnvelope = envelope;
+                self.cachedDataMessage = dataMessage;
                 return;
             } else {
                 DDLogInfo(@"%@ Ignoring group message for unknown group from: %@", self.logTag, envelope.source);
