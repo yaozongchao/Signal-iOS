@@ -62,9 +62,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, readonly) TSNetworkManager *networkManager;
 @property (nonatomic, readonly) YapDatabaseConnection *dbConnection;
 
-// add by yaozongchao，解决删除群组消息后，收到第一条消息不展示的问题，采用暂存上一条消息的办法
-@property (nonatomic, strong)OWSSignalServiceProtosEnvelope *cachedEnvelope;
-@property (nonatomic, strong)OWSSignalServiceProtosDataMessage *cachedDataMessage;
+// add by yaozongchao，解决删除群组消息后，收到前几条消息不展示的问题，采用暂存消息的办法
+@property (nonatomic, strong)NSMutableArray<OWSSignalServiceProtosEnvelope *>* cachedEnvelopeArray;
+@property (nonatomic, strong)NSMutableArray<OWSSignalServiceProtosDataMessage *>* cachedDataMessageArray;
+
 
 @end
 
@@ -385,31 +386,39 @@ NS_ASSUME_NONNULL_BEGIN
                         [self handleReceivedGroupAvatarUpdateWithEnvelope:envelope dataMessage:dataMessage transaction:transaction];
                     }
                 }
-                if (self.cachedDataMessage/* && self.cachedDataMessage.group.id == dataMessage.group.id*/) {
-                    if ((self.cachedDataMessage.flags & OWSSignalServiceProtosDataMessageFlagsEndSession) != 0) {
-                        [self handleEndSessionMessageWithEnvelope:self.cachedEnvelope dataMessage:self.cachedDataMessage transaction:transaction];
-                    } else if ((self.cachedDataMessage.flags & OWSSignalServiceProtosDataMessageFlagsExpirationTimerUpdate) != 0) {
-                        [self handleExpirationTimerUpdateMessageWithEnvelope:self.cachedEnvelope dataMessage:self.cachedDataMessage transaction:transaction];
-                    } else if ((self.cachedDataMessage.flags & OWSSignalServiceProtosDataMessageFlagsProfileKeyUpdate) != 0) {
-                        [self handleProfileKeyMessageWithEnvelope:self.cachedEnvelope dataMessage:self.cachedDataMessage];
-                    } else if (self.cachedDataMessage.attachments.count > 0) {
-                        [self handleReceivedMediaWithEnvelope:self.cachedEnvelope dataMessage:self.cachedDataMessage transaction:transaction];
+                [self.cachedDataMessageArray enumerateObjectsUsingBlock:^(OWSSignalServiceProtosDataMessage * _Nonnull cachedDataMessage, NSUInteger idx, BOOL * _Nonnull stop) {
+                    OWSSignalServiceProtosEnvelope * cachedEnvelope = [self.cachedEnvelopeArray objectAtIndex:idx];
+                    if ((cachedDataMessage.flags & OWSSignalServiceProtosDataMessageFlagsEndSession) != 0) {
+                        [self handleEndSessionMessageWithEnvelope:cachedEnvelope dataMessage:cachedDataMessage transaction:transaction];
+                    } else if ((cachedDataMessage.flags & OWSSignalServiceProtosDataMessageFlagsExpirationTimerUpdate) != 0) {
+                        [self handleExpirationTimerUpdateMessageWithEnvelope:cachedEnvelope dataMessage:cachedDataMessage transaction:transaction];
+                    } else if ((cachedDataMessage.flags & OWSSignalServiceProtosDataMessageFlagsProfileKeyUpdate) != 0) {
+                        [self handleProfileKeyMessageWithEnvelope:cachedEnvelope dataMessage:cachedDataMessage];
+                    } else if (cachedDataMessage.attachments.count > 0) {
+                        [self handleReceivedMediaWithEnvelope:cachedEnvelope dataMessage:cachedDataMessage transaction:transaction];
                     } else {
-                        [self handleReceivedTextMessageWithEnvelope:self.cachedEnvelope dataMessage:self.cachedDataMessage transaction:transaction];
+                        [self handleReceivedTextMessageWithEnvelope:cachedEnvelope dataMessage:cachedDataMessage transaction:transaction];
                         
-                        if ([self isDataMessageGroupAvatarUpdate:self.cachedDataMessage]) {
+                        if ([self isDataMessageGroupAvatarUpdate:cachedDataMessage]) {
                             DDLogVerbose(@"%@ Data message had group avatar attachment", self.logTag);
-                            [self handleReceivedGroupAvatarUpdateWithEnvelope:self.cachedEnvelope dataMessage:self.cachedDataMessage transaction:transaction];
+                            [self handleReceivedGroupAvatarUpdateWithEnvelope:cachedEnvelope dataMessage:cachedDataMessage transaction:transaction];
                         }
                     }
-                    self.cachedEnvelope = nil;
-                    self.cachedDataMessage = nil;
-                }
+                }];
+                [self.cachedEnvelopeArray removeAllObjects];
+                [self.cachedDataMessageArray removeAllObjects];
+                self.cachedEnvelopeArray = nil;
+                self.cachedDataMessageArray = nil;
                 return;
             } else if (dataMessage.group.type == OWSSignalServiceProtosGroupContextTypeDeliver) {
                 [self sendGroupInfoRequest:dataMessage.group.id envelope:envelope transaction:transaction];
-                self.cachedEnvelope = envelope;
-                self.cachedDataMessage = dataMessage;
+                if (![self.cachedEnvelopeArray containsObject:envelope]) {
+                    [self.cachedEnvelopeArray addObject:envelope];
+                }
+                
+                if (![self.cachedDataMessageArray containsObject:dataMessage]) {
+                    [self.cachedDataMessageArray addObject:dataMessage];
+                }
                 return;
             } else {
                 DDLogInfo(@"%@ Ignoring group message for unknown group from: %@", self.logTag, envelope.source);
@@ -434,6 +443,20 @@ NS_ASSUME_NONNULL_BEGIN
             [self handleReceivedGroupAvatarUpdateWithEnvelope:envelope dataMessage:dataMessage transaction:transaction];
         }
     }
+}
+
+- (NSMutableArray<OWSSignalServiceProtosEnvelope *> *)cachedEnvelopeArray {
+    if (!_cachedEnvelopeArray) {
+        _cachedEnvelopeArray = [NSMutableArray new];
+    }
+    return _cachedEnvelopeArray;
+}
+
+- (NSMutableArray<OWSSignalServiceProtosDataMessage *> *)cachedDataMessageArray {
+    if (!_cachedDataMessageArray) {
+        _cachedDataMessageArray = [NSMutableArray new];
+    }
+    return _cachedDataMessageArray;
 }
 
 - (void)sendGroupInfoRequest:(NSData *)groupId
